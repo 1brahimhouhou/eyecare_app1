@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:code_eyecare/theme/colors.dart';
 import 'package:code_eyecare/common/validators.dart';
 import 'package:code_eyecare/common/widgets/primary_button.dart';
-import 'package:code_eyecare/features/auth/data/fake_auth.dart';
+import 'package:code_eyecare/features/auth/data/auth_api.dart';
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,7 +17,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailCtrl = TextEditingController();
   final _passCtrl  = TextEditingController();
   bool _loading = false;
-  final _auth = FakeAuth();
+  final _auth = AuthApi();
 
   @override
   void dispose() {

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:code_eyecare/theme/colors.dart';
 import 'package:code_eyecare/common/validators.dart';
 import 'package:code_eyecare/common/widgets/primary_button.dart';
-import 'package:code_eyecare/features/auth/data/fake_auth.dart';
+import 'package:code_eyecare/features/auth/data/auth_api.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -18,7 +18,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passCtrl  = TextEditingController();
   final _confirmCtrl = TextEditingController();
   bool _loading = false;
-  final _auth = FakeAuth();
+  final _auth = AuthApi();
 
   @override
   void dispose() {
