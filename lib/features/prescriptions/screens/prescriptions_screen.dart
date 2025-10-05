@@ -1,113 +1,75 @@
+// lib/features/prescriptions/screens/prescriptions_screen.dart
 import 'package:flutter/material.dart';
 import '../data/prescriptions_repo.dart';
 
 class PrescriptionsScreen extends StatefulWidget {
   const PrescriptionsScreen({super.key});
+
   @override
   State<PrescriptionsScreen> createState() => _PrescriptionsScreenState();
 }
 
 class _PrescriptionsScreenState extends State<PrescriptionsScreen> {
-  final _repo = PrescriptionsRepo();
-  List<Prescription> _items = [];
-  bool _loading = true;
+  final repo = PrescriptionsRepo();
+  List<Prescription> items = [];
 
   @override
-  void initState() { super.initState(); _load(); }
-
-  Future<void> _load() async {
-    final list = await _repo.list();
-    setState(() { _items = list; _loading = false; });
+  void initState() {
+    super.initState();
+    repo.load().then((v) => setState(() => items = v));
   }
 
-  Future<void> _addDialog() async {
-    final right = TextEditingController();
-    final left  = TextEditingController();
-    final notes = TextEditingController();
-    DateTime date = DateTime.now();
-
-    await showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Add prescription'),
-        content: SizedBox(
-          width: 380,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(controller: right, decoration: const InputDecoration(hintText: 'Right eye (Sph/Cyl/Axis)')),
-              const SizedBox(height: 8),
-              TextField(controller: left,  decoration: const InputDecoration(hintText: 'Left eye (Sph/Cyl/Axis)')),
-              const SizedBox(height: 8),
-              TextField(controller: notes, decoration: const InputDecoration(hintText: 'Notes')),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(child: Text('Date: ${date.toLocal().toString().split(".").first}')),
-                  TextButton(
-                    onPressed: () async {
-                      final d = await showDatePicker(
-                        context: context,
-                        initialDate: date,
-                        firstDate: DateTime(2020),
-                        lastDate: DateTime(2100),
-                      );
-                      if (d != null) date = d;
-                    },
-                    child: const Text('Pick date'),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          FilledButton(
-            onPressed: () async {
-              if (right.text.trim().isEmpty || left.text.trim().isEmpty) return;
-              await _repo.add(
-                date: date,
-                rightEye: right.text.trim(),
-                leftEye: left.text.trim(),
-                notes: notes.text.trim(),
-              );
-              if (context.mounted) Navigator.pop(context);
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
+  Future<void> _add() async {
+    final now = DateTime.now();
+    final p = Prescription(
+      id: 'rx_${now.millisecondsSinceEpoch}',
+      date: now,
+      rightEye: 'Sph -1.50 / Cyl -0.50 / Axis 180°',
+      leftEye:  'Sph -1.25 / Cyl -0.25 / Axis 170°',
+      notes: 'Auto-generated for demo',
     );
-    await _load();
+    setState(() => items.add(p));
+    await repo.save(items);
+  }
+
+  Future<void> _remove(String id) async {
+    setState(() => items.removeWhere((e) => e.id == id));
+    await repo.save(items);
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) return const Center(child: CircularProgressIndicator());
     return Scaffold(
       appBar: AppBar(title: const Text('My Prescriptions')),
-      body: _items.isEmpty
+      body: items.isEmpty
           ? const Center(child: Text('No prescriptions yet'))
           : ListView.separated(
-              itemCount: _items.length,
-              separatorBuilder: (_, __) => const Divider(height: 1),
+              padding: const EdgeInsets.all(16),
+              itemCount: items.length,
+              separatorBuilder: (_, __) => const Divider(),
               itemBuilder: (_, i) {
-                final p = _items[i];
+                final p = items[i];
                 return ListTile(
-                  title: Text(p.date.toLocal().toString().split(' ').first),
-                  subtitle: Text('OD: ${p.rightEye}\nOS: ${p.leftEye}\n${p.notes}'),
+                  title: Text(
+                    'Rx ${p.id}',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  subtitle: Text(
+                    '${p.date.toLocal()}'
+                    '\nR: ${p.rightEye}\nL: ${p.leftEye}\n${p.notes}',
+                  ),
                   isThreeLine: true,
                   trailing: IconButton(
                     icon: const Icon(Icons.delete_outline),
-                    onPressed: () async { await _repo.remove(p.id); await _load(); },
+                    onPressed: () => _remove(p.id),
                   ),
                 );
               },
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _addDialog,
-        child: const Icon(Icons.add),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _add,
+        icon: const Icon(Icons.add),
+        label: const Text('Add'),
       ),
     );
   }

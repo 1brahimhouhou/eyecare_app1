@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../shop/data/catalog.dart';
-import '../../shop/data/cart_provider.dart';
+import '../data/catalog.dart';
+import '../data/cart_provider.dart';
 
 class ProductDetailsScreen extends StatelessWidget {
   final Product product;
@@ -9,7 +9,7 @@ class ProductDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cart = context.watch<CartProvider>();
+    final cart = context.read<CartProvider>();
     return Scaffold(
       appBar: AppBar(title: Text(product.name)),
       body: ListView(
@@ -23,8 +23,12 @@ class ProductDetailsScreen extends StatelessWidget {
           Text(product.description),
           const SizedBox(height: 24),
           FilledButton.icon(
-            onPressed: () => cart.increment(product.id),
-
+            onPressed: () => cart.addItem(
+              id: product.id,
+              name: product.name,
+              price: product.price,
+              image: product.image,
+            ),
             icon: const Icon(Icons.add_shopping_cart),
             label: const Text('Add to cart'),
           ),

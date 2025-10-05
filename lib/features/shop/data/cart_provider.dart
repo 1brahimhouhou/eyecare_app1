@@ -6,103 +6,79 @@ class CartItem {
   final String id;
   final String name;
   final double price;
+  final String? image;
   int quantity;
+  CartItem({required this.id, required this.name, required this.price, this.image, this.quantity = 1});
 
-  CartItem({
-    required this.id,
-    required this.name,
-    required this.price,
-    this.quantity = 1,
-  });
-
-  Map<String, dynamic> toMap() => {
-        'id': id,
-        'name': name,
-        'price': price,
-        'quantity': quantity,
-      };
-
-  factory CartItem.fromMap(Map<String, dynamic> map) => CartItem(
-        id: map['id'] as String,
-        name: map['name'] as String,
-        price: (map['price'] as num).toDouble(),
-        quantity: map['quantity'] as int,
-      );
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'price': price, 'image': image, 'quantity': quantity};
+  factory CartItem.fromJson(Map<String, dynamic> j) =>
+      CartItem(id: j['id'], name: j['name'], price: (j['price'] as num).toDouble(), image: j['image'], quantity: j['quantity'] ?? 1);
 }
 
 class CartProvider extends ChangeNotifier {
   static const _kKey = 'cart_items';
+  final Map<String, CartItem> _map = {};
 
-  final List<CartItem> _items = [];
-  List<CartItem> get items => List.unmodifiable(_items);
-
-  // ← المطلوب من MainScaffold
-  int get totalItems => _items.fold(0, (sum, it) => sum + it.quantity);
-
-  double get totalPrice =>
-      _items.fold(0.0, (sum, it) => sum + it.price * it.quantity);
+  List<CartItem> get items => _map.values.toList();
+  int get totalItems => _map.values.fold(0, (s, e) => s + e.quantity);
+  double get totalPrice => _map.values.fold(0, (s, e) => s + e.price * e.quantity);
 
   Future<void> load() async {
     final sp = await SharedPreferences.getInstance();
     final raw = sp.getString(_kKey);
     if (raw == null) return;
-    final decoded = jsonDecode(raw);
-    if (decoded is List) {
-      final list = decoded
-          .map((e) => CartItem.fromMap(Map<String, dynamic>.from(e)))
-          .toList()
-          .cast<CartItem>();
-      _items
-        ..clear()
-        ..addAll(list);
-      notifyListeners();
-    }
+    final list = (jsonDecode(raw) as List).cast<Map<String, dynamic>>();
+    _map
+      ..clear()
+      ..addEntries(list.map((m) {
+        final c = CartItem.fromJson(m);
+        return MapEntry(c.id, c);
+      }));
+    notifyListeners();
   }
 
   Future<void> _save() async {
     final sp = await SharedPreferences.getInstance();
-    final raw = jsonEncode(_items.map((e) => e.toMap()).toList());
-    await sp.setString(_kKey, raw);
+    await sp.setString(_kKey, jsonEncode(_map.values.map((e) => e.toJson()).toList()));
   }
 
-  void add(CartItem item) {
-    final i = _items.indexWhere((e) => e.id == item.id);
-    if (i >= 0) {
-      _items[i].quantity += item.quantity;
+  void addItem({required String id, required String name, required double price, String? image}) {
+    if (_map.containsKey(id)) {
+      _map[id]!.quantity++;
     } else {
-      _items.add(item);
+      _map[id] = CartItem(id: id, name: name, price: price, image: image);
     }
-    _save();
-    notifyListeners();
-  }
-
-  void remove(String id) {
-    _items.removeWhere((e) => e.id == id);
-    _save();
-    notifyListeners();
-  }
-
-  void clear() {
-    _items.clear();
     _save();
     notifyListeners();
   }
 
   void increment(String id) {
-    final i = _items.indexWhere((e) => e.id == id);
-    if (i >= 0) {
-      _items[i].quantity++;
+    if (_map.containsKey(id)) {
+      _map[id]!.quantity++;
       _save();
       notifyListeners();
     }
   }
 
   void decrement(String id) {
-    final i = _items.indexWhere((e) => e.id == id);
-    if (i >= 0 && _items[i].quantity > 1) {
-      _items[i].quantity--;
-      _save();
-      notifyListeners();
-    }
+    if (!_map.containsKey(id)) return;
+    final c = _map[id]!;
+    c.quantity--;
+    if (c.quantity <= 0) _map.remove(id);
+    _save();
+    notifyListeners();
+  }
+
+  void remove(String id) {
+    _map.remove(id);
+    _save();
+    notifyListeners();
+  }
+
+  void clear() {
+    _map.clear();
+    _save();
+    notifyListeners();
   }
 }
+

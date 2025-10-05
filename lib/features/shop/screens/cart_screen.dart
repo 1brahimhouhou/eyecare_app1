@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-// غيّر المسار إذا لزم حسب مشروعك
-import 'package:code_eyecare/features/shop/data/cart_provider.dart';
+import '../data/cart_provider.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
@@ -10,8 +8,7 @@ class CartScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cart = context.watch<CartProvider>();
-    final items = cart.items;          // List<CartItem>
-    final total = cart.totalPrice;     // double
+    final items = cart.items;
 
     return Scaffold(
       appBar: AppBar(title: Text('Cart (${cart.totalItems})')),
@@ -24,27 +21,20 @@ class CartScreen extends StatelessWidget {
                     itemCount: items.length,
                     separatorBuilder: (_, __) => const Divider(height: 1),
                     itemBuilder: (_, i) {
-                      final c = items[i]; // CartItem
+                      final c = items[i];
                       return ListTile(
-                        leading: const Icon(Icons.remove_red_eye_outlined, size: 28),
+                        leading: c.image != null
+                            ? Image.network(c.image!, width: 48, height: 48, fit: BoxFit.cover)
+                            : const Icon(Icons.remove_red_eye_outlined, size: 28),
                         title: Text(c.name),
                         subtitle: Text('\$${c.price.toStringAsFixed(2)}'),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            IconButton(
-                              onPressed: () => cart.decrement(c.id),
-                              icon: const Icon(Icons.remove),
-                            ),
+                            IconButton(onPressed: () => cart.decrement(c.id), icon: const Icon(Icons.remove)),
                             Text('${c.quantity}'),
-                            IconButton(
-                              onPressed: () => cart.increment(c.id),
-                              icon: const Icon(Icons.add),
-                            ),
-                            IconButton(
-                              onPressed: () => cart.remove(c.id),
-                              icon: const Icon(Icons.delete_outline),
-                            ),
+                            IconButton(onPressed: () => cart.increment(c.id), icon: const Icon(Icons.add)),
+                            IconButton(onPressed: () => cart.remove(c.id), icon: const Icon(Icons.delete_outline)),
                           ],
                         ),
                       );
@@ -55,16 +45,8 @@ class CartScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(16),
                   child: Row(
                     children: [
-                      const Expanded(
-                        child: Text(
-                          'Total',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      Text(
-                        '\$${total.toStringAsFixed(2)}',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
+                      const Expanded(child: Text('Total', style: TextStyle(fontWeight: FontWeight.bold))),
+                      Text('\$${cart.totalPrice.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),
