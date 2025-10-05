@@ -1,50 +1,113 @@
 import 'package:flutter/material.dart';
-import 'package:code_eyecare/theme/colors.dart';
-import 'package:code_eyecare/common/widgets/primary_button.dart';
+import '../data/prescriptions_repo.dart';
 
-class PrescriptionsScreen extends StatelessWidget {
+class PrescriptionsScreen extends StatefulWidget {
   const PrescriptionsScreen({super.key});
+  @override
+  State<PrescriptionsScreen> createState() => _PrescriptionsScreenState();
+}
+
+class _PrescriptionsScreenState extends State<PrescriptionsScreen> {
+  final _repo = PrescriptionsRepo();
+  List<Prescription> _items = [];
+  bool _loading = true;
+
+  @override
+  void initState() { super.initState(); _load(); }
+
+  Future<void> _load() async {
+    final list = await _repo.list();
+    setState(() { _items = list; _loading = false; });
+  }
+
+  Future<void> _addDialog() async {
+    final right = TextEditingController();
+    final left  = TextEditingController();
+    final notes = TextEditingController();
+    DateTime date = DateTime.now();
+
+    await showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Add prescription'),
+        content: SizedBox(
+          width: 380,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: right, decoration: const InputDecoration(hintText: 'Right eye (Sph/Cyl/Axis)')),
+              const SizedBox(height: 8),
+              TextField(controller: left,  decoration: const InputDecoration(hintText: 'Left eye (Sph/Cyl/Axis)')),
+              const SizedBox(height: 8),
+              TextField(controller: notes, decoration: const InputDecoration(hintText: 'Notes')),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(child: Text('Date: ${date.toLocal().toString().split(".").first}')),
+                  TextButton(
+                    onPressed: () async {
+                      final d = await showDatePicker(
+                        context: context,
+                        initialDate: date,
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2100),
+                      );
+                      if (d != null) date = d;
+                    },
+                    child: const Text('Pick date'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          FilledButton(
+            onPressed: () async {
+              if (right.text.trim().isEmpty || left.text.trim().isEmpty) return;
+              await _repo.add(
+                date: date,
+                rightEye: right.text.trim(),
+                leftEye: left.text.trim(),
+                notes: notes.text.trim(),
+              );
+              if (context.mounted) Navigator.pop(context);
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    await _load();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final items = const [
-      ("Dr. Sara • 2025-05-10", "Sphere: -2.00 / Cylinder: -0.50"),
-      ("Clinic West • 2024-10-03", "Contact lens: -1.75 (R/L)"),
-    ];
-
+    if (_loading) return const Center(child: CircularProgressIndicator());
     return Scaffold(
-      appBar: AppBar(title: const Text('My Prescriptions'), backgroundColor: AppColors.tint, elevation: 0),
-      body: ListView(
-        padding: const EdgeInsets.all(24),
-        children: [
-          PrimaryButton(label: "Upload prescription", onPressed: () {}),
-          const SizedBox(height: 16),
-          ...items.map((e) => Container(
-                height: 84,
-                margin: const EdgeInsets.symmetric(vertical: 8),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.border),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                child: Row(
-                  children: [
-                    const Icon(Icons.visibility_outlined, color: AppColors.muted),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(e.$1, style: const TextStyle(fontWeight: FontWeight.w600)),
-                          const SizedBox(height: 6),
-                          Text(e.$2, style: const TextStyle(color: AppColors.muted, fontSize: 13)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              )),
-        ],
+      appBar: AppBar(title: const Text('My Prescriptions')),
+      body: _items.isEmpty
+          ? const Center(child: Text('No prescriptions yet'))
+          : ListView.separated(
+              itemCount: _items.length,
+              separatorBuilder: (_, __) => const Divider(height: 1),
+              itemBuilder: (_, i) {
+                final p = _items[i];
+                return ListTile(
+                  title: Text(p.date.toLocal().toString().split(' ').first),
+                  subtitle: Text('OD: ${p.rightEye}\nOS: ${p.leftEye}\n${p.notes}'),
+                  isThreeLine: true,
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete_outline),
+                    onPressed: () async { await _repo.remove(p.id); await _load(); },
+                  ),
+                );
+              },
+            ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _addDialog,
+        child: const Icon(Icons.add),
       ),
     );
   }

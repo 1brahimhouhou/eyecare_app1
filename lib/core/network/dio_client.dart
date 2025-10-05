@@ -1,37 +1,38 @@
 import 'package:dio/dio.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'app_env.dart';
+
+// إذا عندك AppEnv جاهز استعمله، وإلا خليك على الـ baseUrl هون
+const _kBaseUrl = 'https://reqres.in/api';
 
 class DioClient {
-  DioClient._();
-  static final DioClient I = DioClient._();
+  DioClient._internal() {
+    dio = Dio(
+      BaseOptions(
+        baseUrl: _kBaseUrl,
+        connectTimeout: const Duration(seconds: 10),
+        receiveTimeout: const Duration(seconds: 15),
+        headers: const {
+          'Content-Type': 'application/json',
+        },
+      ),
+    );
 
-  final Dio dio = Dio(BaseOptions(
-    baseUrl: AppEnv.baseUrl,
-    connectTimeout: const Duration(seconds: 10),
-    receiveTimeout: const Duration(seconds: 15),
-    headers: {'Content-Type': 'application/json'},
-  ))
-    ..interceptors.add(InterceptorsWrapper(
-      onRequest: (options, handler) async {
-        final sp = await SharedPreferences.getInstance();
-        final token = sp.getString('auth_token');
-        if (token != null && token.isNotEmpty) {
-          options.headers['Authorization'] = 'Bearer $token';
-        }
-        handler.next(options);
-      },
-      onError: (e, handler) {
-        // تحويل رسائل الخطأ لشيء واضح للمستخدم
-        final msg = e.response?.data is Map && (e.response?.data['error'] != null)
-            ? e.response?.data['error'].toString()
-            : e.message ?? 'Network error';
-        handler.reject(DioException(
-          requestOptions: e.requestOptions,
-          message: msg,
-          response: e.response,
-          type: e.type,
-        ));
-      },
-    ));
+    // Interceptor بسيط لوجينغ (اختياري)
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          // print('[REQ] ${options.method} ${options.uri}');
+          handler.next(options);
+        },
+        onError: (e, handler) {
+          // print('[ERR] ${e.response?.statusCode} ${e.message}');
+          handler.next(e);
+        },
+      ),
+    );
+  }
+
+  // الـ singleton ↓↓↓
+  static final DioClient I = DioClient._internal();
+
+  late final Dio dio;
 }

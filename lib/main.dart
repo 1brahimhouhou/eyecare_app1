@@ -1,10 +1,33 @@
 import 'package:flutter/material.dart';
-import 'package:code_eyecare/theme/colors.dart';
-import 'package:code_eyecare/shell/main_scaffold.dart';
-import 'package:code_eyecare/features/auth/screens/login_screen.dart';
-import 'package:code_eyecare/features/auth/screens/register_screen.dart';
+import 'package:provider/provider.dart';
 
-void main() => runApp(const BabiVisionApp());
+import 'theme/colors.dart';
+import 'shell/main_scaffold.dart';
+
+// لو بدك بوابة لوج-إن: استعمل FakeAuth/isLoggedIn اللي عملناه قبل
+// import 'features/auth/data/fake_auth.dart';
+// import 'features/auth/screens/login_screen.dart';
+// import 'features/auth/screens/register_screen.dart';
+
+import 'features/shop/data/cart_provider.dart';
+import 'features/appointments/screens/appointments_list_screen.dart';
+import 'features/shop/screens/cart_screen.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final cart = CartProvider();
+  await cart.load();
+
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider<CartProvider>.value(value: cart),
+      ],
+      child: const BabiVisionApp(),
+    ),
+  );
+}
 
 class BabiVisionApp extends StatelessWidget {
   const BabiVisionApp({super.key});
@@ -15,8 +38,10 @@ class BabiVisionApp extends StatelessWidget {
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
       scaffoldBackgroundColor: Colors.white,
-      inputDecorationTheme: InputDecorationTheme(
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      inputDecorationTheme: const InputDecorationTheme(
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(12)),
+        ),
       ),
       appBarTheme: const AppBarTheme(
         elevation: 0,
@@ -29,11 +54,10 @@ class BabiVisionApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'BabiVision',
       theme: theme,
-      initialRoute: '/login',
+      home: const MainScaffold(),
       routes: {
-        '/login': (_) => const LoginScreen(),
-        '/register': (_) => const RegisterScreen(),
-        '/main': (_) => const MainScaffold(),
+        '/appointments': (_) => const AppointmentsListScreen(),
+        '/cart': (_) => const CartScreen(),
       },
     );
   }

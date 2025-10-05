@@ -1,6 +1,8 @@
+// FORCE ReqRes – لا dart-define، لا مفاتيح
 class AppEnv {
-  // للتجريب السريع فيك تشتغل على ReqRes:
-  // login: POST /login (email: eve.holt@reqres.in, password: cityslicka)
-  // register: POST /register (email: eve.holt@reqres.in, password: pistol)
-  static const baseUrl = 'https://reqres.in/api';
+  static const baseUrl      = 'https://reqres.in/api';
+  static const apiKey       = '';
+  static const apiKeyHeader = '';
+  static const apiKeyPrefix = '';
+  static const apiKeyQuery  = '';
 }
