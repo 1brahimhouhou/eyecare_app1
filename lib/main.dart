@@ -8,6 +8,7 @@ import 'shell/main_scaffold.dart';
 import 'features/auth/data/auth_api.dart';
 
 
+
 // إذا عندك FakeAuth بدّل السطر الجايي بهيك: import 'features/auth/data/fake_auth.dart';
 import 'features/auth/data/auth_api.dart';
 
@@ -17,9 +18,15 @@ import 'features/home/screens/home_screen.dart';
 import 'features/appointments/screens/appointments_list_screen.dart';
 import 'features/shop/screens/shop_categories_screen.dart';
 import 'features/prescriptions/screens/prescriptions_screen.dart';
+import 'package:flutter/material.dart';
+import 'core/network/dio_client.dart'; 
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  DioClient.enableLogging();        // so you can see requests/responses in the console
+  await DioClient.setupAuthHeader();
+  
+
 
   // Providers ready
   final cart = CartProvider();
@@ -56,21 +63,17 @@ class BabiVisionApp extends StatelessWidget {
     );
 
     return MaterialApp(
-      title: 'BabiVision Mobile',
-      debugShowCheckedModeBanner: false,
-      theme: theme,
-      // بوابة بتقرر نروح على Login أو MainScaffold
-      home: const _Gate(),
-      routes: {
-        '/login': (ctx) => const LoginScreen(),
-        '/register': (ctx) => const RegisterScreen(),
-        '/main': (ctx) => const MainScaffold(),
-        '/home': (ctx) => const HomeScreen(),
-        '/appointments': (ctx) => const AppointmentsListScreen(),
-        '/shop': (ctx) => const ShopCategoriesScreen(),
-        '/prescriptions': (ctx) => const PrescriptionsScreen(),
-      },
-    );
+  title: 'BabiVision Mobile',
+  debugShowCheckedModeBanner: false,
+  initialRoute: '/login', // or '/'
+  routes: {
+  '/login': (_) => const LoginScreen(),
+  '/register': (_) => const RegisterScreen(), // <- needed
+  '/main': (_) => const MainScaffold(),
+},
+
+);
+
   }
 }
 
@@ -80,8 +83,7 @@ class _Gate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // إذا عندك الميثود instance غيّرها لـ AuthApi().isLoggedIn()
-    final future = AuthApi().isLoggedIn();
+    final future = AuthApi().isLoggedIn();   // <- this will work once the import is correct
 
     return FutureBuilder<bool>(
       future: future,

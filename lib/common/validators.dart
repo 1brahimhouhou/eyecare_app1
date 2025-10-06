@@ -1,13 +1,21 @@
+// lib/common/validators.dart
 class Validators {
-  static String? required(String? v, {String field = 'This field'}) =>
-      (v == null || v.trim().isEmpty) ? '$field is required' : null;
-
-  static String? email(String? v) {
-    if (v == null || v.isEmpty) return 'Email is required';
-    final ok = RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(v);
-    return ok ? null : 'Enter a valid email';
+  static String? notEmpty(String? v) {
+    if (v == null || v.trim().isEmpty) return 'Required';
+    return null;
   }
 
-  static String? minLen(String? v, int n, {String field = 'Password'}) =>
-      (v == null || v.length < n) ? '$field must be at least $n chars' : null;
+  static String? email(String? v) {
+    if (v == null || v.trim().isEmpty) return 'Email is required';
+    final r = RegExp(r'^[\w\.\-]+@([\w\-]+\.)+[a-zA-Z]{2,}$');
+    if (!r.hasMatch(v.trim())) return 'Invalid email';
+    return null;
+  }
+
+  static String? Function(String?) minLen(int n) {
+    return (String? v) {
+      if (v == null || v.length < n) return 'Min $n characters';
+      return null;
+    };
+  }
 }
