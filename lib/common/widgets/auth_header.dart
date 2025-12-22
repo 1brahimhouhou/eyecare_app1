@@ -1,43 +1,49 @@
 import 'package:flutter/material.dart';
+import 'package:eyecare_app/theme/colors.dart';
 
-class AppColors {
-  static const primary   = Color(0xFF21C7C7); // أخضر-تركوازي للزر
-  static const tint      = Color(0xFFE6FFFF); // سماوي فاتح للهيدر
-  static const title     = Color(0xFF3C4461);
-  static const muted     = Color(0xFF8A90A6);
-  static const fieldFill = Color(0xFFEDEDED); // رمادي فاتح للفيلدات
-}
 
 class AuthHeader extends StatelessWidget {
-  const AuthHeader({super.key, required this.title});
+  const AuthHeader({
+    super.key,
+    required this.title,
+    this.logoAsset = 'assets/images/babe.png',
+    this.brandTitle = 'BabiVision',
+    this.brandSubtitle = 'Mobile',
+    this.height = 280,
+  });
+
   final String title;
+  final String logoAsset;
+  final String brandTitle;
+  final String brandSubtitle;
+  final double height;
 
   @override
   Widget build(BuildContext context) {
-    const h = 260.0;
     return SizedBox(
-      height: h,
+      height: height,
+      width: double.infinity,
       child: Stack(
         children: [
-          // خلفية سماوية
+          // Background tint
           Container(color: AppColors.tint),
 
-          // مثلّث أبيض نازل
+          // Big white triangle in the middle (like your first screenshot)
           Align(
             alignment: Alignment.topCenter,
             child: ClipPath(
               clipper: _DownTriangleClipper(),
               child: Container(
-                height: h,
+                height: height,
                 width: double.infinity,
                 color: Colors.white,
               ),
             ),
           ),
 
-          // عنوان الشاشة بظل
+          // Title at top
           Positioned(
-            top: 24,
+            top: 22,
             left: 0,
             right: 0,
             child: Text(
@@ -45,7 +51,7 @@ class AuthHeader extends StatelessWidget {
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.displaySmall?.copyWith(
                     color: Colors.black87,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                     shadows: const [
                       Shadow(color: Colors.black26, offset: Offset(0, 3), blurRadius: 6),
                     ],
@@ -53,16 +59,41 @@ class AuthHeader extends StatelessWidget {
             ),
           ),
 
-          // لوجو + اسم البراند
+          // Logo + text in center
           Align(
-            alignment: const Alignment(0, 0.2),
+            alignment: const Alignment(0, 0.10),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              children: const [
-                Icon(Icons.remove_red_eye, size: 64, color: AppColors.primary),
-                SizedBox(height: 8),
-                Text('BabiVision', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w600, color: AppColors.title)),
-                Text('Mobile',     style: TextStyle(fontSize: 16, color: AppColors.muted)),
+              children: [
+                Image.asset(
+                  logoAsset,
+                  height: 70,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stack) {
+                    return const Text(
+                      'Logo not found (check pubspec.yaml + path)',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.red),
+                    );
+                  },
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  brandTitle,
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.title,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  brandSubtitle,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    color: AppColors.muted,
+                  ),
+                ),
               ],
             ),
           ),
@@ -75,7 +106,7 @@ class AuthHeader extends StatelessWidget {
 class _DownTriangleClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
-    // مثلّث من أعلى يسار/يمين لنقطة بالمنتصف بالأسفل
+    // Top-left -> Top-right -> Bottom-center -> close
     return Path()
       ..moveTo(0, 0)
       ..lineTo(size.width, 0)

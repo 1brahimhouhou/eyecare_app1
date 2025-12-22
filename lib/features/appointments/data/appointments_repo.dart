@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
@@ -20,31 +21,31 @@ class Appointment {
   });
 
   Appointment copyWith({bool? confirmed}) => Appointment(
-    id: id,
-    dateTime: dateTime,
-    clinic: clinic,
-    doctor: doctor,
-    reason: reason,
-    confirmed: confirmed ?? this.confirmed,
-  );
+        id: id,
+        dateTime: dateTime,
+        clinic: clinic,
+        doctor: doctor,
+        reason: reason,
+        confirmed: confirmed ?? this.confirmed,
+      );
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'dateTime': dateTime.toIso8601String(),
-    'clinic': clinic,
-    'doctor': doctor,
-    'reason': reason,
-    'confirmed': confirmed,
-  };
+        'id': id,
+        'dateTime': dateTime.toIso8601String(),
+        'clinic': clinic,
+        'doctor': doctor,
+        'reason': reason,
+        'confirmed': confirmed,
+      };
 
   static Appointment fromJson(Map<String, dynamic> j) => Appointment(
-    id: j['id'],
-    dateTime: DateTime.parse(j['dateTime']),
-    clinic: j['clinic'],
-    doctor: j['doctor'],
-    reason: j['reason'],
-    confirmed: j['confirmed'] ?? false,
-  );
+        id: j['id'] as String,
+        dateTime: DateTime.parse(j['dateTime'] as String),
+        clinic: j['clinic'] as String,
+        doctor: j['doctor'] as String,
+        reason: j['reason'] as String,
+        confirmed: (j['confirmed'] as bool?) ?? false,
+      );
 }
 
 class AppointmentsRepo {
@@ -54,17 +55,15 @@ class AppointmentsRepo {
   Future<List<Appointment>> list() async {
     final sp = await SharedPreferences.getInstance();
     final raw = sp.getString(_kKey);
-    if (raw == null) return [];
+    if (raw == null || raw.isEmpty) return [];
     final arr = (jsonDecode(raw) as List).cast<Map<String, dynamic>>();
     return arr.map(Appointment.fromJson).toList();
   }
 
   Future<void> _save(List<Appointment> items) async {
     final sp = await SharedPreferences.getInstance();
-    await sp.setString(
-      _kKey,
-      jsonEncode(items.map((e) => e.toJson()).toList()),
-    );
+    final encoded = jsonEncode(items.map((e) => e.toJson()).toList());
+    await sp.setString(_kKey, encoded);
   }
 
   Future<void> add({
@@ -74,13 +73,15 @@ class AppointmentsRepo {
     required String reason,
   }) async {
     final items = await list();
-    items.add(Appointment(
-      id: _uuid.v4(),
-      dateTime: dateTime,
-      clinic: clinic,
-      doctor: doctor,
-      reason: reason,
-    ));
+    items.add(
+      Appointment(
+        id: _uuid.v4(),
+        dateTime: dateTime,
+        clinic: clinic,
+        doctor: doctor,
+        reason: reason,
+      ),
+    );
     await _save(items);
   }
 

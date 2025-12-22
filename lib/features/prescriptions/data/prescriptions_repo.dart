@@ -1,5 +1,5 @@
-// lib/features/prescriptions/data/prescriptions_repo.dart
 import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Prescription {
@@ -26,11 +26,11 @@ class Prescription {
       };
 
   static Prescription fromJson(Map<String, dynamic> j) => Prescription(
-        id: j['id'],
-        date: DateTime.parse(j['date']),
-        rightEye: j['rightEye'],
-        leftEye: j['leftEye'],
-        notes: j['notes'] ?? '',
+        id: j['id'] as String,
+        date: DateTime.parse(j['date'] as String),
+        rightEye: (j['rightEye'] as String?) ?? '',
+        leftEye: (j['leftEye'] as String?) ?? '',
+        notes: (j['notes'] as String?) ?? '',
       );
 }
 
@@ -40,7 +40,7 @@ class PrescriptionsRepo {
   Future<List<Prescription>> load() async {
     final sp = await SharedPreferences.getInstance();
     final raw = sp.getString(_kKey);
-    if (raw == null) return [];
+    if (raw == null || raw.isEmpty) return [];
     final list = (jsonDecode(raw) as List)
         .map((e) => Prescription.fromJson(e as Map<String, dynamic>))
         .toList();

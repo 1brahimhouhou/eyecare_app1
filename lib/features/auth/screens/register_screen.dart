@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../common/widgets/auth_header.dart';
+import 'package:eyecare_app/theme/colors.dart';
+
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});

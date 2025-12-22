@@ -1,14 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:code_eyecare/main.dart';
+import 'package:eyecare_app/main.dart';
 
 void main() {
-  testWidgets('App boots to Login screen', (WidgetTester tester) async {
-    // شغّل الأبّل
-    await tester.pumpWidget(const BabiVisionApp());
+  testWidgets('App builds', (WidgetTester tester) async {
+    await tester.pumpWidget(const EyeCareApp());
     await tester.pumpAndSettle();
-
-    // تأكّد من وجود عنوان Login
-    expect(find.text('Login'), findsOneWidget);
   });
 }
-

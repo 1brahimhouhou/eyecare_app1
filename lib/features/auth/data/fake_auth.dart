@@ -1,10 +1,12 @@
-import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FakeAuth {
   static const _kToken = 'auth_token';
 
-  Future<void> login({required String email, required String password}) async {
+  Future<void> login({
+    required String email,
+    required String password,
+  }) async {
     await Future.delayed(const Duration(milliseconds: 400));
     if (email.trim() == 'fail@example.com') {
       throw Exception('Invalid credentials');
@@ -31,7 +33,7 @@ class FakeAuth {
 
   Future<bool> isLoggedIn() async {
     final sp = await SharedPreferences.getInstance();
-    return sp.getString(_kToken)?.isNotEmpty == true;
+    return sp.getString(_kToken)?.isNotEmpty ?? false;
   }
 
   Future<void> _saveToken(String token) async {

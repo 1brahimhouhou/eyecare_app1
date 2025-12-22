@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const primary = Color(0xFF17B3AF);
-  static const background = Color(0xFFF6FFFD);
-  static const text = Color(0xFF2F3640);
-  static const muted = Color(0xFF8C97A5);
-  static const tint = Color(0xFF12C7BE);
+  // Main brand color
+  static const Color primary = Color(0xFF2EC4C6);
 
-  // Add this:
-  static const fieldFill = Color(0xFFF1F3F5); // light grey for input fill
+  // Light background tint (header background)
+  static const Color tint = Color(0xFFE9FBFA);
+
+  // Title text (BabiVision)
+  static const Color title = Color(0xFF6B78A8);
+
+  // Subtitle text (Mobile)
+  static const Color muted = Color(0xFF9AA0B5);
+
+  // Text field background
+  static const Color fieldFill = Color(0xFFE0E0E0);
 }
